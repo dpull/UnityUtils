@@ -126,8 +126,10 @@ public class PackageSocket
 		EncodeHeader(length, data, 0);
 		Array.Copy(buffer, start, data, headerLen, length);
 		SendQueue.Enqueue(data);
-
-		ProcessSend();
+                if (CurState == State.Connected)
+                {
+                     ProcessSend();	
+                }
 	}
 
 	public void SendPing()
