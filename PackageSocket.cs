@@ -61,7 +61,7 @@ public class PackageSocket
 		Reset();
 	}
 
-	public void Connect(string server, int port)
+	public void Connect(string ip, int port)
 	{
 		Reset();
 
@@ -70,8 +70,8 @@ public class PackageSocket
 		
 		try
 		{
-			var ip = GetIPAddress(server);
-			CurSocket.Connect(ip, port);
+			var ipAddress = IPAddress.Parse(ip);
+			CurSocket.Connect(ipAddress, port);
 		}
 		catch (SocketException e)
 		{
@@ -126,10 +126,9 @@ public class PackageSocket
 		EncodeHeader(length, data, 0);
 		Array.Copy(buffer, start, data, headerLen, length);
 		SendQueue.Enqueue(data);
-                if (CurState == State.Connected)
-                {
-                     ProcessSend();	
-                }
+
+		if (CurState == State.Connected)
+			ProcessSend();	
 	}
 
 	public void SendPing()
@@ -295,17 +294,6 @@ public class PackageSocket
 		LastPackageSocketError = packageSocketError;
 		CurState = State.Error;
 	}
-	
-	IPAddress GetIPAddress(string server)
-	{
-		var hostInfo = Dns.GetHostEntry(server);
-		foreach (var address in hostInfo.AddressList) 
-		{
-			if (address.AddressFamily == AddressFamily.InterNetwork)
-				return address;
-		}
-		return null;
-	}
 
 	void Reset()
 	{
@@ -341,6 +329,4 @@ public class PackageSocket
 	{
 		return string.Format("State:{0} SendQueue:{1}", CurState, SendQueue.Count);
     }
-
-
 }

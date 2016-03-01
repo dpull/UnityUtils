@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
+using System.Net;
 
 public static class Util
 { 
@@ -59,24 +61,33 @@ public static class Util
         go.transform.Traversal(child=>{child.gameObject.layer = layer; return true; });
     }
     
-    public static string UrlToIP(string url)
+	public static IPAddress GetIPAddress(string host)
     {
-        try
-        {
-            var host = System.Net.Dns.GetHostEntry(url);
-            foreach (System.Net.IPAddress ip in host.AddressList)
-            {
-                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                    return ip.ToString();
-            }
-            return url;
-        }
-        catch(System.Exception e)
-        {
-            Debug.LogException(e);
-            return url;
-        }
+		var hostEntry = Dns.GetHostEntry(host);
+		foreach (var ip in hostEntry.AddressList)
+		{
+			if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+				return ip;
+		}
+		return null;
     }
+
+	public static IPAddress GetIPAddressByHttpDns(string host)
+	{
+		var webclient = new System.Net.WebClient();
+		var ip = webclient.DownloadString("http://119.29.29.29/d?dn=" + host);
+
+		try
+		{
+			return IPAddress.Parse(ip);
+		}
+		catch(Exception e)
+		{
+			Debug.LogWarning(string.Format("GetIPAddressByHttpDns failed.host:[{0}] ip:[{1}]", host, ip));
+			throw e;
+		}
+	}
+
 
     public static string Md5File(string file)
     {
@@ -132,7 +143,7 @@ public static class Util
 		var randCount = endIndex - startIndex;
 		while (randCount > 0)
 		{
-			var i = Random.Range(0, randCount);
+			var i = UnityEngine.Random.Range(0, randCount);
 
 			var temp = array[startIndex + randCount];
 			array[startIndex + randCount] = array[startIndex + i];
@@ -140,6 +151,44 @@ public static class Util
 
 			randCount--;
 		}
+	}
+
+	public static string TranslateToString(this Vector3 vector)
+	{
+		return string.Format("{0},{1},{2}", vector.x, vector.y, vector.z);
+	}
+
+	public static Vector3 TranslateToVector3(this string strValue)
+	{
+		if (string.IsNullOrEmpty(strValue))
+			return Vector3.zero;
+
+		var values = strValue.Split(",".ToCharArray());
+		if (values.Length != 3)
+		{
+			return Vector3.zero;
+		}
+
+		return new Vector3(Convert.ToSingle(values[0]), Convert.ToSingle(values[1]), Convert.ToSingle(values[2]));
+	}
+
+	public static string TranslateToString(this Quaternion quaternion)
+	{
+		return string.Format("{0},{1},{2},{3}", quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+	}
+
+	public static Quaternion TranslateToQuaternion(this string strValue)
+	{
+		if (string.IsNullOrEmpty(strValue))
+			return Quaternion.identity;
+		
+		var values = strValue.Split(",".ToCharArray());
+		if (values.Length != 4)
+		{
+			return Quaternion.identity;
+		}
+		
+		return new Quaternion(Convert.ToSingle(values[0]), Convert.ToSingle(values[1]), Convert.ToSingle(values[2]), Convert.ToSingle(values[3]));
 	}
 
 //	static public T AddMissingComponent<T>(this GameObject go) where T : Component
