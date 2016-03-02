@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
-using System.Net;
 
 public static class Util
 { 
@@ -61,34 +60,6 @@ public static class Util
         go.transform.Traversal(child=>{child.gameObject.layer = layer; return true; });
     }
     
-	public static IPAddress GetIPAddress(string host)
-    {
-		var hostEntry = Dns.GetHostEntry(host);
-		foreach (var ip in hostEntry.AddressList)
-		{
-			if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-				return ip;
-		}
-		return null;
-    }
-
-	public static IPAddress GetIPAddressByHttpDns(string host)
-	{
-		var webclient = new System.Net.WebClient();
-		var ip = webclient.DownloadString("http://119.29.29.29/d?dn=" + host);
-
-		try
-		{
-			return IPAddress.Parse(ip);
-		}
-		catch(Exception e)
-		{
-			Debug.LogWarning(string.Format("GetIPAddressByHttpDns failed.host:[{0}] ip:[{1}]", host, ip));
-			throw e;
-		}
-	}
-
-
     public static string Md5File(string file)
     {
         using (var stream = System.IO.File.OpenRead(file))
