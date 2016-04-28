@@ -109,66 +109,66 @@ namespace X
         /// <summary>
         /// 绝对路径转相对路径
         /// </summary>
-        /// <param name="strBasePath">基本路径</param>
-        /// <param name="strFullPath">绝对路径</param>
+		/// <param name="basePath">基本路径</param>
+		/// <param name="fullPath">绝对路径</param>
         /// <returns>strFullPath相对于strBasePath的相对路径</returns>
-        public static string GetRelativePath(string strBasePath, string strFullPath)
+        public static string GetRelativePath(string basePath, string fullPath)
         {
-            if (strBasePath == null)
+            if (basePath == null)
                 throw new ArgumentNullException("strBasePath");
 
-            if (strFullPath == null)
+            if (fullPath == null)
                 throw new ArgumentNullException("strFullPath");
             
-            strBasePath = Path.GetFullPath(strBasePath);
-            strFullPath = Path.GetFullPath(strFullPath);
+            basePath = Path.GetFullPath(basePath);
+            fullPath = Path.GetFullPath(fullPath);
             
-            var DirectoryPos = new int[strBasePath.Length];
-            int nPosCount = 0;
+            var directoryPos = new int[basePath.Length];
+            int posCount = 0;
             
-            DirectoryPos[nPosCount] = -1;
-            ++nPosCount;
+            directoryPos[posCount] = -1;
+            ++posCount;
             
-            int nDirectoryPos = 0;
+            int directoryPosIndex = 0;
             while (true)
             {
-                nDirectoryPos = strBasePath.IndexOf('\\', nDirectoryPos);
-                if (nDirectoryPos == -1)
+                directoryPosIndex = basePath.IndexOf('\\', directoryPosIndex);
+                if (directoryPosIndex == -1)
                     break;
                 
-                DirectoryPos[nPosCount] = nDirectoryPos;
-                ++nPosCount;
-                ++nDirectoryPos;
+                directoryPos[posCount] = directoryPosIndex;
+                ++posCount;
+                ++directoryPosIndex;
             }
             
-            if (!strBasePath.EndsWith("\\"))
+            if (!basePath.EndsWith("\\"))
             {
-                DirectoryPos[nPosCount] = strBasePath.Length;
-                ++nPosCount;
+                directoryPos[posCount] = basePath.Length;
+                ++posCount;
             }     
             
-            int nCommon = -1;
-            for (int i = 1; i < nPosCount; ++i)
+            int common = -1;
+            for (int i = 1; i < posCount; ++i)
             {
-                int nStart = DirectoryPos[i - 1] + 1;
-                int nLength = DirectoryPos[i] - nStart;
+                int nStart = directoryPos[i - 1] + 1;
+                int nLength = directoryPos[i] - nStart;
                 
-                if (string.Compare(strBasePath, nStart, strFullPath, nStart, nLength, true) != 0)
+                if (string.Compare(basePath, nStart, fullPath, nStart, nLength, true) != 0)
                     break;
                 
-                nCommon = i;
+                common = i;
             }
             
-            if (nCommon == -1)
-                return strFullPath;
+            if (common == -1)
+                return fullPath;
             
             var strBuilder = new StringBuilder();
-            for (int i = nCommon + 1; i < nPosCount; ++i)
+            for (int i = common + 1; i < posCount; ++i)
                 strBuilder.Append("..\\");
             
-            int nSubStartPos = DirectoryPos[nCommon] + 1;
-            if (nSubStartPos < strFullPath.Length)
-                strBuilder.Append(strFullPath.Substring(nSubStartPos));
+            int nSubStartPos = directoryPos[common] + 1;
+            if (nSubStartPos < fullPath.Length)
+                strBuilder.Append(fullPath.Substring(nSubStartPos));
             
             string strResult = strBuilder.ToString();
             return strResult == string.Empty ? ".\\" : strResult;

@@ -124,42 +124,56 @@ public static class Util
 		}
 	}
 
-	public static string TranslateToString(this Vector3 vector)
+	public static float TranslateToYaw(this Quaternion rotation)
 	{
-		return string.Format("{0},{1},{2}", vector.x, vector.y, vector.z);
+		return rotation.eulerAngles.y * Mathf.Deg2Rad;
 	}
 
-	public static Vector3 TranslateToVector3(this string strValue)
+	public static Quaternion TranslateToQuaternion(this float yaw)
 	{
-		if (string.IsNullOrEmpty(strValue))
-			return Vector3.zero;
+		return Quaternion.AngleAxis(yaw * Mathf.Rad2Deg, Vector3.up);
+	}
 
-		var values = strValue.Split(",".ToCharArray());
-		if (values.Length != 3)
+	public static float TranslateToYaw(this Vector3 direction)
+	{
+		if (Mathf.Abs(direction.z) > Mathf.Epsilon)
 		{
-			return Vector3.zero;
+			var yaw = Mathf.Atan(direction.x / direction.z);
+			if (direction.z < 0.0f)
+			{
+				yaw += Mathf.PI;
+			}
+			return yaw;
 		}
 
-		return new Vector3(Convert.ToSingle(values[0]), Convert.ToSingle(values[1]), Convert.ToSingle(values[2]));
-	}
-
-	public static string TranslateToString(this Quaternion quaternion)
-	{
-		return string.Format("{0},{1},{2},{3}", quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-	}
-
-	public static Quaternion TranslateToQuaternion(this string strValue)
-	{
-		if (string.IsNullOrEmpty(strValue))
-			return Quaternion.identity;
-		
-		var values = strValue.Split(",".ToCharArray());
-		if (values.Length != 4)
+		if (Mathf.Abs(direction.x) < Mathf.Epsilon)
 		{
-			return Quaternion.identity;
+			return 0.0f;
 		}
-		
-		return new Quaternion(Convert.ToSingle(values[0]), Convert.ToSingle(values[1]), Convert.ToSingle(values[2]), Convert.ToSingle(values[3]));
+
+		return direction.x > 0.0f ? Mathf.PI * 0.5f : -Mathf.PI * 0.5f;
+	}
+
+	public static Vector3 TranslateToVector(this float yaw)
+	{
+		return new Vector3(Mathf.Sin(yaw), 0.0f, Mathf.Cos(yaw));
+	}
+
+	public static float TransferToFloat(this long value)
+	{
+		return (float)BitConverter.Int64BitsToDouble(value);
+	}
+
+	public static long TransferToInt64(this float value)
+	{
+		return BitConverter.DoubleToInt64Bits(value);
+	}
+
+	public static float CalcuDistanceSqr2D(Vector3 srcPos, Vector3 dstPos)
+	{
+		var deltaX = dstPos.x - srcPos.x;
+		var deltaZ = dstPos.z - srcPos.z;
+		return deltaX * deltaX + deltaZ * deltaZ;
 	}
 
 //	static public T AddMissingComponent<T>(this GameObject go) where T : Component
