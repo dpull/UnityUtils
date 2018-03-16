@@ -9,10 +9,11 @@ namespace X
         AndroidJavaObject AndroidInputStream;
         long AndroidInputStreamLength = long.MaxValue;
         long AndroidInputStreamPostion = 0;
-                 
+
         public AndroidAssetStream(string fileName)
         {
-            var noCompressExt = new string[]{
+            var noCompressExt = new string[]
+            {
                 ".jpg", ".jpeg", ".png", ".gif",
                 ".wav", ".mp2", ".mp3", ".ogg", ".aac",
                 ".mpg", ".mpeg", ".mid", ".midi", ".smf", ".jet",
@@ -27,15 +28,18 @@ namespace X
             {
                 using (var activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity"))
                 {
-                    using (var assetManager = activity.Call<AndroidJavaObject>("getAssets")) //android.content.res.AssetManager
+                    using (var assetManager = activity.Call<AndroidJavaObject>("getAssets")
+                    ) //android.content.res.AssetManager
                     {
-                        if (Array.Exists<string>(noCompressExt, (obj)=>{ return obj == ext; }))
+                        if (Array.Exists<string>(noCompressExt, (obj) => { return obj == ext; }))
                         {
-                            using (var assetFileDescriptor = assetManager.Call<AndroidJavaObject>("openFd", fileName)) //assets/ //android.content.res.AssetFileDescriptor
+                            using (var assetFileDescriptor = assetManager.Call<AndroidJavaObject>("openFd", fileName)
+                            ) //assets/ //android.content.res.AssetFileDescriptor
                             {
                                 AndroidInputStreamLength = assetFileDescriptor.Call<long>("getLength");
                             }
                         }
+
                         AndroidInputStream = assetManager.Call<AndroidJavaObject>("open", fileName);
                     }
                 }
@@ -44,12 +48,12 @@ namespace X
             if (AndroidInputStream == null)
                 throw new System.IO.FileNotFoundException("getAssets failed", fileName);
         }
-        
-        public override void Flush ()
+
+        public override void Flush()
         {
             throw new NotImplementedException();
         }
-        
+
         public override int Read(byte[] buffer, int offset, int count)
         {
             var ret = Read(AndroidInputStream, buffer, offset, count);
@@ -62,82 +66,71 @@ namespace X
         {
             if (offset - AndroidInputStreamPostion < 0)
                 throw new NotImplementedException();
-                
+
             long skip;
             switch (origin)
             {
-            case System.IO.SeekOrigin.Begin:
-                skip = AndroidInputStream.Call<long>("skip", offset - AndroidInputStreamPostion);
-                AndroidInputStreamPostion += skip;
-                break;
+                case System.IO.SeekOrigin.Begin:
+                    skip = AndroidInputStream.Call<long>("skip", offset - AndroidInputStreamPostion);
+                    AndroidInputStreamPostion += skip;
+                    break;
 
-            case System.IO.SeekOrigin.Current:
-                skip = AndroidInputStream.Call<long>("skip", offset);
-                AndroidInputStreamPostion += skip;
-                break;
+                case System.IO.SeekOrigin.Current:
+                    skip = AndroidInputStream.Call<long>("skip", offset);
+                    AndroidInputStreamPostion += skip;
+                    break;
 
-            case System.IO.SeekOrigin.End:
-                throw new NotImplementedException();
+                case System.IO.SeekOrigin.End:
+                    throw new NotImplementedException();
             }
+
             return AndroidInputStreamPostion;
         }
-        
+
         public override void SetLength(long value)
         {
             throw new NotImplementedException();
         }
-        
+
         public override void Write(byte[] buffer, int offset, int count)
         {
             throw new NotImplementedException();
         }
-        
-        public override bool CanRead 
-        { 
-            get 
-            { 
-                return AndroidInputStream != null;
-            }
+
+        public override bool CanRead
+        {
+            get { return AndroidInputStream != null; }
         }
-        public override bool CanSeek 
+
+        public override bool CanSeek
+        {
+            get { return false; }
+        }
+
+        public override bool CanWrite
+        {
+            get { return false; }
+        }
+
+        public override long Length
         {
             get
             {
-                return false;
-            }
-        }
-        public override bool CanWrite 
-        {
-            get 
-            { 
-                return false;
-            } 
-        }
-        public override long Length 
-        { 
-            get 
-            { 
                 if (AndroidInputStreamLength == long.MaxValue)
                     throw new NotImplementedException();
                 return AndroidInputStreamLength;
-            } 
+            }
         }
-        
+
         public override long Position
         {
-            get 
-            {
-                return AndroidInputStreamPostion;
-            }
-            set 
-            {
-                throw new NotImplementedException();
-            }
-        }   
+            get { return AndroidInputStreamPostion; }
+            set { throw new NotImplementedException(); }
+        }
 
         int Read(AndroidJavaObject javaObject, byte[] buffer, int offset, int count)
         {
-            var args = new object[]{buffer, offset, count};
+            var args = new object[] {buffer, offset, count};
             IntPtr methodID = AndroidJNIHelper.GetMethodID<int>(javaObject.GetRawClass(), "read", args, false);
             jvalue[] array = AndroidJNIHelper.CreateJNIArgArray(args);
             try
@@ -148,6 +141,7 @@ namespace X
                     var temp = AndroidJNI.FromByteArray(array[0].l);
                     Array.Copy(temp, offset, buffer, offset, readLen);
                 }
+
                 return readLen;
             }
             finally

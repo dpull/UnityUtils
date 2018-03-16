@@ -15,7 +15,6 @@ namespace X
             {
                 eventHander(sender, args);
             }
-        }       
+        }
     }
-    
 }
