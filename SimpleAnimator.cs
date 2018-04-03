@@ -8,35 +8,47 @@ using UnityEditor;
 
 public class SimpleAnimatorEditor
 {
-	[MenuItem("Assets/Animator to SimpleAnimator")]
-	static void DoSomething()
+	[MenuItem("Assets/Select Animator to SimpleAnimator")]
+	private static void Convert()
 	{
 		var activeObject = Selection.activeObject as GameObject;
 		var animators = activeObject.GetComponentsInChildren<Animator>();
 
 		foreach (var animator in animators)
 		{
-			SimpleAnimatorState[] states;
-			string defaultState;
-			
-			if (!BuildSimpleAnimatorState(animator, out states, out defaultState))
-				continue;
-		
-			BuildSimpleAnimator(animator.gameObject, states, defaultState);
-			DestoryAnimator(animator);
+			Process(animator);
 		}
+	}
+	
+	public static SimpleAnimator Process(Animator animator)
+	{
+		SimpleAnimatorState[] states;
+		string defaultState;
+			
+		if (!BuildSimpleAnimatorState(animator, out states, out defaultState))
+			return null;
+		
+		var simpleAnimator = BuildSimpleAnimator(animator.gameObject, states, defaultState);
+		DestoryAnimator(animator);
+
+		return simpleAnimator;
 	}
 
 	private static bool BuildSimpleAnimatorState(Animator animator, out SimpleAnimatorState[] stateArray, out string defaultState)
 	{
-		var states = new List<SimpleAnimatorState>();
-		var layerCount = animator.layerCount;
-		var runtimeAnimatorController = animator.runtimeAnimatorController as UnityEditor.Animations.AnimatorController;
-		var layers = runtimeAnimatorController.layers;
-
 		stateArray = null;
 		defaultState = null;
-
+		
+		var states = new List<SimpleAnimatorState>();
+		var runtimeAnimatorController = animator.runtimeAnimatorController as UnityEditor.Animations.AnimatorController;
+		if (runtimeAnimatorController == null)
+		{
+			if (animator.runtimeAnimatorController != null)
+				Debug.LogFormat("Not support. {0} runtimeAnimatorController type:{1}", animator.runtimeAnimatorController.name, animator.runtimeAnimatorController.GetType());
+			return false;
+		}
+		
+		var layers = runtimeAnimatorController.layers;
 		if (layers.Length != 1)
 		{
 			Debug.LogFormat("Not support. {0} layer count:{1}", runtimeAnimatorController.name, layers.Length);
@@ -94,7 +106,7 @@ public class SimpleAnimatorEditor
 		return true;
 	}
 
-	private static void BuildSimpleAnimator(GameObject go, SimpleAnimatorState[] states, string defaultState)
+	private static SimpleAnimator BuildSimpleAnimator(GameObject go, SimpleAnimatorState[] states, string defaultState)
 	{
 		var animation = go.AddComponent<Animation>();
 		var simpleAnimator = go.AddComponent<SimpleAnimator>();
@@ -108,6 +120,8 @@ public class SimpleAnimatorEditor
 		simpleAnimator.states = states;
 		simpleAnimator.defaultState = defaultState;
 		simpleAnimator.animation = animation;
+
+		return simpleAnimator;
 	}
 
 	private static void DestoryAnimator(Animator animator)
