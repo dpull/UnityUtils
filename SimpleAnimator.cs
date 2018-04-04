@@ -61,6 +61,12 @@ public class SimpleAnimatorEditor
 			
 			foreach (var state in layer.stateMachine.states)
 			{
+				if (Mathf.Abs(state.state.speed - 1) > float.Epsilon)
+				{
+					Debug.LogFormat("Not support. {0}:{1} state speed:{2}", runtimeAnimatorController.name, state.state.name, state.state.speed);
+					return false;
+				}
+				
 				if (state.state.transitions.Length > 1)
 				{
 					Debug.LogFormat("Not support. {0}:{1} transitions count:{2}", runtimeAnimatorController.name, state.state.name, state.state.transitions.Length);
@@ -75,7 +81,8 @@ public class SimpleAnimatorEditor
 				
 				if (simpleState.clip == null)
 				{
-					Debug.LogFormat("Not support. {0}:{1} motion type:{2}", runtimeAnimatorController.name, state.state.name, state.state.motion.GetType());
+					if (state.state.motion != null)
+						Debug.LogFormat("Not support. {0}:{1} motion type:{2}", runtimeAnimatorController.name, state.state.name, state.state.motion.GetType());
 					return false;
 				}
 				
@@ -164,7 +171,9 @@ public class SimpleAnimator : MonoBehaviour
 		{
 			state.clip.legacy = true;
 		}
-		Play("CY_SCHS_B_CX_A");
+		
+		if (!string.IsNullOrEmpty(defaultState))
+			Play(defaultState);
 	}
 
 	public bool Play(string stateName)
